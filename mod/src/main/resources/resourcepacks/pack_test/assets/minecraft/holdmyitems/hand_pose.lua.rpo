@@ -1,0 +1,8 @@
+{
+  expansions: {
+    zOffset: "hmi.zOffset", 
+    xOffset: "hmi.xOffset",
+    yOffset: "hmi.yOffset",
+    inspectKeybind: "hmi.inspectKeybind" 
+  }
+}

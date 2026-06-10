@@ -1,0 +1,27 @@
+{
+	"required": true,
+	"package": "com.holdmylua.source.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+      "client.GameRendererMixin",
+      "client.MinecraftClientMixin",
+      "other.ItemStackMixin",
+      "player.CameraMixin",
+      "player.LivingEntityMixin",
+      "render.BlockRenderManagerMixin",
+      "render.HandRenderTypeMixin",
+      "render.HeldItemRendererMixin",
+      "render.ItemRendererMixin",
+      "safety.JavaMethodMixin",
+      "property.UseDurationMixin",
+      "property.UsingItemMixin",
+      "render.HangingSignMixin",
+      "render.ItemRenderStateMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
