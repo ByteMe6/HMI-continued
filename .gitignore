@@ -1,0 +1,7 @@
+work/
+tools/
+**/.gradle/
+**/build/
+**/run/
+.jdks/
+gradle-dist/
