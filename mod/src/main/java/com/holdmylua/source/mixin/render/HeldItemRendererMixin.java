@@ -20,10 +20,10 @@ import javax.script.ScriptException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.state.BellRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
@@ -392,7 +392,7 @@ public abstract class HeldItemRendererMixin {
       int light
    ) throws ScriptException, NoSuchMethodException {
       if (!player.isScoping()) {
-         ((ItemStackAccessor)item).hMI5_0$setTransform(-1);
+         ((ItemStackAccessor)(Object)item).hMI5_0$setTransform(-1);
          boolean bl = hand == InteractionHand.MAIN_HAND;
          boolean interact = false;
          boolean blockBreaking = false;
@@ -485,7 +485,7 @@ public abstract class HeldItemRendererMixin {
             blockBreaking,
             this.particles
          );
-         int combinedLight = LightTexture.lightCoordsWithEmission(light, Block.byItem(item.getItem()).defaultBlockState().getLightEmission());
+         int combinedLight = LightCoordsUtil.lightCoordsWithEmission(light, Block.byItem(item.getItem()).defaultBlockState().getLightEmission());
          if (player.isInvisible()) {
             this.applyArmMatrices(matrices, combinedLight, 0.0F, 0.0F, arm);
          } else {
@@ -555,7 +555,7 @@ public abstract class HeldItemRendererMixin {
                   .getBlockEntityRenderDispatcher()
                   .getRenderer(bellBlockEntity)
                   .submit(state, matrices, orderedRenderCommandQueue, new CameraRenderState());
-               ((AlternateBlockRenderer)this.minecraft.getBlockRenderer())
+               ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
                   .renderSingleBlockWithEmission(
                      (BlockState)Blocks.BELL.defaultBlockState().setValue(BlockStateProperties.BELL_ATTACHMENT, BellAttachType.CEILING),
                      matrices,
@@ -568,7 +568,7 @@ public abstract class HeldItemRendererMixin {
                if (blockState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
                   matrices.pushPose();
                   matrices.translate(0.0F, 1.0F, 0.0F);
-                  ((AlternateBlockRenderer)this.minecraft.getBlockRenderer())
+                  ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
                      .renderSingleBlockWithEmission(
                         (BlockState)blockState.setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER),
                         matrices,
@@ -580,7 +580,7 @@ public abstract class HeldItemRendererMixin {
                   matrices.popPose();
                }
 
-               ((AlternateBlockRenderer)this.minecraft.getBlockRenderer())
+               ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
                   .renderSingleBlockWithEmission(blockState, matrices, orderedRenderCommandQueue, light, this.minecraft.level, player);
             }
 

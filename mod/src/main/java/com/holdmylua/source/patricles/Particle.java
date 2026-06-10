@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -359,7 +359,7 @@ public class Particle {
          matrix.rotate(new Quaternionf().rotateZ((float)(this.rz * (float) (Math.PI / 180.0))));
          Matrix3f normalMatrix = matrices.last().normal();
          if (Objects.equals(this.particleRenderType, "CUTOUT_L")) {
-            light = LightTexture.lightCoordsWithEmission(15, 15);
+            light = LightCoordsUtil.lightCoordsWithEmission(15, 15);
          }
 
          double size = 0.5;

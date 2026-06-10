@@ -139,17 +139,17 @@ public class P {
 
    @Safe
    public String getStandingBlock(AbstractClientPlayer player) {
-      return player.level().getBlockState(player.blockPosition().below()).getBlockHolder().getRegisteredName();
+      return player.level().getBlockState(player.blockPosition().below()).typeHolder().getRegisteredName();
    }
 
    @Safe
    public String getBlockBelow(AbstractClientPlayer player, int steps) {
-      return player.level().getBlockState(player.blockPosition().below().below(steps)).getBlockHolder().getRegisteredName();
+      return player.level().getBlockState(player.blockPosition().below().below(steps)).typeHolder().getRegisteredName();
    }
 
    @Safe
    public String getBlockAbove(AbstractClientPlayer player, int steps) {
-      return player.level().getBlockState(player.blockPosition().above().above().above(steps)).getBlockHolder().getRegisteredName();
+      return player.level().getBlockState(player.blockPosition().above().above().above(steps)).typeHolder().getRegisteredName();
    }
 
    @Safe

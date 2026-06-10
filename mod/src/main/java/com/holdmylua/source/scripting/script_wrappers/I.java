@@ -101,7 +101,7 @@ public class I {
 
    @Safe
    public boolean shouldTranslateItem(ItemStack item) {
-      int t = ((ItemStackAccessor)item).hMI5_0$getTransform();
+      int t = ((ItemStackAccessor)(Object)item).hMI5_0$getTransform();
       return (t != 0 || t == -1)
          && (
             !(item.getItem() instanceof FishingRodItem)
@@ -124,20 +124,20 @@ public class I {
 
    @Safe
    public void setTranslate(ItemStack item, boolean translate) {
-      ((ItemStackAccessor)item).hMI5_0$setTransform(translate);
+      ((ItemStackAccessor)(Object)item).hMI5_0$setTransform(translate);
    }
 
    @Safe
    public void setRenderAsBlock(ItemStack item, boolean render) {
       if (Block.byItem(item.getItem()) != Blocks.AIR) {
-         ((ItemStackAccessor)item).hMI5_0$setRenderAsBlock(render);
+         ((ItemStackAccessor)(Object)item).hMI5_0$setRenderAsBlock(render);
       }
    }
 
    @Safe
    public boolean shouldRenderAsBlock(ItemStack item) {
       if (Block.byItem(item.getItem()) != Blocks.AIR) {
-         int t = ((ItemStackAccessor)item).hMI5_0$getRenderAsBlock();
+         int t = ((ItemStackAccessor)(Object)item).hMI5_0$getRenderAsBlock();
          return t == 1 || t == -1;
       } else {
          return false;
@@ -156,7 +156,7 @@ public class I {
 
    @Safe
    public void setSwingSpeed(ItemStack item, double value) {
-      ((ItemStackAccessor)item).hMI5_0$setSwingSpeed((int)value);
+      ((ItemStackAccessor)(Object)item).hMI5_0$setSwingSpeed((int)value);
    }
 
    @Safe

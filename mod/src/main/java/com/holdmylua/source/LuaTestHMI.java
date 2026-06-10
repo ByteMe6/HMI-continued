@@ -33,7 +33,7 @@ public class LuaTestHMI implements ModInitializer {
       HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("example", "hud"), (context, tickCounter) -> {
          AtomicInteger y = new AtomicInteger(10);
          GlobalsStorage.debugTextRenderer.get().forEach(str -> {
-            context.drawString(Minecraft.getInstance().font, str, 10, y.get(), -1);
+            context.text(Minecraft.getInstance().font, str, 10, y.get(), -1, true);
             y.addAndGet(10);
          });
          GlobalsStorage.debugTextRenderer.clear();

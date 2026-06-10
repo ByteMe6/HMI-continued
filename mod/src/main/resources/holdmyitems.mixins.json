@@ -16,7 +16,8 @@
       "property.UseDurationMixin",
       "property.UsingItemMixin",
       "render.HangingSignMixin",
-      "render.ItemRenderStateMixin"
+      "render.ItemRenderStateMixin",
+      "render.RenderTypeInvoker"
 	],
 	"injectors": {
 		"defaultRequire": 1
