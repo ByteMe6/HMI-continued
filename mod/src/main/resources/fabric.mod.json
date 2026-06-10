@@ -27,5 +27,10 @@
     "minecraft": "~26.1.2",
     "java": ">=25",
     "fabric-api": "*"
-  }
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/luaj-jse-3.0.1.jar"
+    }
+  ]
 }
