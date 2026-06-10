@@ -20,7 +20,9 @@ public class GlobalsStorage {
    public static final List<Particle> particles = new ArrayList<>();
    public static final ModelPartAnimator modelPartAnimator = new ModelPartAnimator();
    public static final DebugTextRenderer debugTextRenderer = new DebugTextRenderer();
-   public static ItemStack mainHandItem = Items.AIR.getDefaultInstance();
-   public static ItemStack offHandItem = Items.AIR.getDefaultInstance();
-   public static ItemStack renderedStack = Items.AIR.getDefaultInstance();
+   // PORT-26.1: item components are late-bound in 26.1; getDefaultInstance() throws
+   // "Components not bound yet" during class init, so the air sentinels use EMPTY.
+   public static ItemStack mainHandItem = ItemStack.EMPTY;
+   public static ItemStack offHandItem = ItemStack.EMPTY;
+   public static ItemStack renderedStack = ItemStack.EMPTY;
 }

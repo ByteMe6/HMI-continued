@@ -41,7 +41,7 @@ public class ModelScriptCache {
       false,
       false,
       false,
-      Items.AIR.getDefaultInstance()
+      ItemStack.EMPTY
    );
    private final Globals globals;
    private final LuaValue chunk;
