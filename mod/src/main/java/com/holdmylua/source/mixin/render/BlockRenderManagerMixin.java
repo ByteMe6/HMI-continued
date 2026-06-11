@@ -45,8 +45,10 @@ public abstract class BlockRenderManagerMixin implements AlternateBlockRenderer 
       if (renderShape != RenderShape.INVISIBLE) {
          combinedLight = LightCoordsUtil.lightCoordsWithEmission(combinedLight, blockState.getLightEmission());
          BlockStateModel blockStateModel = this.get(blockState);
+         // PORT-26.1: getTintSource is @Nullable for untinted blocks where the old
+         // BlockColors.getColor returned -1 (white).
          BlockTintSource tintSource = Minecraft.getInstance().getBlockColors().getTintSource(blockState, 0);
-         int tint = tintSource.colorInWorld(blockState, world, player.blockPosition());
+         int tint = tintSource != null ? tintSource.colorInWorld(blockState, world, player.blockPosition()) : -1;
          float r = (tint >> 16 & 0xFF) / 255.0F;
          float g = (tint >> 8 & 0xFF) / 255.0F;
          float b = (tint & 0xFF) / 255.0F;
