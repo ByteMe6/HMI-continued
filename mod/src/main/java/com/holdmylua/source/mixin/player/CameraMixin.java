@@ -44,6 +44,12 @@ public abstract class CameraMixin implements CameraAccessor {
    private Vector3f left;
    @Shadow
    private Vec3 position;
+   // PORT-26.1: view matrices are rebuilt lazily, gated on these dirty bits
+   // (DIRTY_VIEW_ROT | DIRTY_VIEW_ROT_PROJ). Vanilla setRotation sets them; since
+   // this mixin cancels and replaces setRotation, it must set them too or the
+   // camera view freezes after the first frame.
+   @Shadow
+   private int matrixPropertiesDirty;
    @Unique
    private float pitchM = 0.0F;
    @Unique
@@ -65,6 +71,7 @@ public abstract class CameraMixin implements CameraAccessor {
       this.rotation.add(Axis.XP.rotationDegrees(this.pitchM));
       this.rotation.add(Axis.YP.rotationDegrees(this.yawM));
       this.rotation.add(Axis.ZP.rotationDegrees(this.rollM));
+      this.matrixPropertiesDirty |= 3;
    }
 
    @Override
@@ -99,6 +106,7 @@ public abstract class CameraMixin implements CameraAccessor {
          FORWARDS.rotate(this.rotation, this.forwards);
          UP.rotate(this.rotation, this.up);
          LEFT.rotate(this.rotation, this.left);
+         this.matrixPropertiesDirty |= 3;
          ci.cancel();
       }
    }
