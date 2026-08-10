@@ -48,6 +48,7 @@ import net.minecraft.world.level.block.LanternBlock;
 import net.minecraft.world.level.block.entity.BellBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BellAttachType;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -90,7 +91,7 @@ public abstract class HeldItemRendererMixin {
    protected abstract void renderPlayerArm(PoseStack var1, SubmitNodeCollector var2, int var3, float var4, float var5, HumanoidArm var6);
 
    @Shadow
-   protected abstract void renderArmWithItem(
+   protected abstract void submitArmWithItem(
       AbstractClientPlayer var1,
       float var2,
       float var3,
@@ -372,10 +373,10 @@ public abstract class HeldItemRendererMixin {
    }
 
    @Redirect(
-      method = {"renderHandsWithItems(FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/player/LocalPlayer;I)V"},
+      method = {"submitHandsWithItems(FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/player/LocalPlayer;I)V"},
       at = @At(
          value = "INVOKE",
-         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"
+         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;submitArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"
       )
    )
    private void renderOverhaul(
@@ -528,6 +529,14 @@ public abstract class HeldItemRendererMixin {
                blockState = (BlockState)blockState.setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR);
             }
 
+            // PORT-26.2: held hanging signs used the CEILING_MIDDLE model (with the top
+            // chain bar) via the removed special renderer; the block pipeline would render
+            // the plain ceiling state, leaving the chains looking detached. The "attached"
+            // variant keeps the vertical chain bar, so render that instead.
+            if (blockState.hasProperty(BlockStateProperties.ATTACHED)) {
+               blockState = (BlockState)blockState.setValue(BlockStateProperties.ATTACHED, true);
+            }
+
             if (!item.getHoverName().toString().toLowerCase().contains("torch")
                && !(Block.byItem(item.getItem()) instanceof LanternBlock)
                && !blockState.is(BlockTags.ALL_HANGING_SIGNS)) {
@@ -565,12 +574,25 @@ public abstract class HeldItemRendererMixin {
                      player
                   );
             } else {
-               if (blockState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
-                  matrices.pushPose();
-                  matrices.translate(0.0F, 1.0F, 0.0F);
+               if (blockState.hasProperty(BlockStateProperties.BED_PART)) {
+                  // PORT-26.2: beds use PART (HEAD/FOOT), not DOUBLE_BLOCK_HALF, so the
+                  // old code only ever rendered the default (FOOT) half. Render both
+                  // halves with the head at the origin and the foot +1 z, matching the
+                  // 26.2 item model (headboard points forward along the hand).
                   ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
                      .renderSingleBlockWithEmission(
-                        (BlockState)blockState.setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER),
+                        (BlockState)blockState.setValue(BlockStateProperties.BED_PART, BedPart.HEAD),
+                        matrices,
+                        orderedRenderCommandQueue,
+                        light,
+                        this.minecraft.level,
+                        player
+                     );
+                  matrices.pushPose();
+                  matrices.translate(0.0F, 0.0F, 1.0F);
+                  ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
+                     .renderSingleBlockWithEmission(
+                        (BlockState)blockState.setValue(BlockStateProperties.BED_PART, BedPart.FOOT),
                         matrices,
                         orderedRenderCommandQueue,
                         light,
@@ -578,10 +600,25 @@ public abstract class HeldItemRendererMixin {
                         player
                      );
                   matrices.popPose();
-               }
+               } else {
+                  if (blockState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+                     matrices.pushPose();
+                     matrices.translate(0.0F, 1.0F, 0.0F);
+                     ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
+                        .renderSingleBlockWithEmission(
+                           (BlockState)blockState.setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER),
+                           matrices,
+                           orderedRenderCommandQueue,
+                           light,
+                           this.minecraft.level,
+                           player
+                        );
+                     matrices.popPose();
+                  }
 
-               ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
-                  .renderSingleBlockWithEmission(blockState, matrices, orderedRenderCommandQueue, light, this.minecraft.level, player);
+                  ((AlternateBlockRenderer)(Object)this.minecraft.getModelManager().getBlockStateModelSet())
+                     .renderSingleBlockWithEmission(blockState, matrices, orderedRenderCommandQueue, light, this.minecraft.level, player);
+               }
             }
 
             matrices.pushPose();

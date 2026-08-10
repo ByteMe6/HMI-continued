@@ -2,8 +2,8 @@
     "pack": {
         "description": "Example animation pack!",
         "pack_format": 46,
-        "supported_formats": [46, 84],
         "min_format": 46,
-        "max_format": 84
+        "max_format": 88,
+        "supported_formats": [46, 64]
     }
 }

@@ -7,14 +7,14 @@ import net.minecraft.client.Minecraft;
 public class C {
    @Safe
    public void setCamPos(double x, double y, double z) {
-      if (Minecraft.getInstance().gameRenderer.getMainCamera() instanceof CameraAccessor camera) {
+      if (Minecraft.getInstance().gameRenderer.mainCamera() instanceof CameraAccessor camera) {
          camera.hMI5_0$setPosValues((float)x, (float)y, (float)z);
       }
    }
 
    @Safe
    public void setCamRot(double x, double y, double z) {
-      if (Minecraft.getInstance().gameRenderer.getMainCamera() instanceof CameraAccessor camera) {
+      if (Minecraft.getInstance().gameRenderer.mainCamera() instanceof CameraAccessor camera) {
          camera.hMI5_0$setRotationValues((float)x, (float)y, (float)z);
       }
    }

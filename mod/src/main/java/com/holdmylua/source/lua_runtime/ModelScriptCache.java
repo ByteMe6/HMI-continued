@@ -78,7 +78,7 @@ public class ModelScriptCache {
          } catch (Exception var6) {
             System.err.println("[HoldMyItems] Lua runtime error: " + var6.getMessage());
             SystemToast.addOrUpdate(
-               Minecraft.getInstance().getToastManager(),
+               Minecraft.getInstance().gui.toastManager(),
                SystemToastId.PACK_LOAD_FAILURE,
                Component.nullToEmpty("HMI Lua Runtime error!"),
                Component.nullToEmpty(var6.getMessage())
