@@ -10,6 +10,10 @@ port was produced by decompiling the official 1.21.11 jar and migrating the code
 26.1 APIs. The Lua scripting API surface is unchanged — existing animation packs keep
 working.
 
+> **AI assistance**: This port was developed with the help of an AI coding assistant
+> (API migration, mixin rewriting and debugging were done collaboratively and
+> reviewed/play-tested by the maintainer).
+
 Not affiliated with sapling or Mojang. All credit for the mod itself goes to sapling.
 
 ## Requirements
