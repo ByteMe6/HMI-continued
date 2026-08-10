@@ -26,7 +26,7 @@ Drop the jar from [Releases](../../releases) (or your own build) into `mods/`.
 ```bash
 cd mod
 JAVA_HOME=<path-to-jdk-25> ./gradlew build
-# output: mod/build/libs/holdmyitems-5.1.1+26.2.jar
+# output: mod/build/libs/holdmyitems-5.1.2+26.2.jar
 ```
 
 ## Repository layout
@@ -108,14 +108,12 @@ Minecraft 26.2 reworked the feature-render pipeline again. Key migrations:
   pipeline writes depth (`DepthStencilState.DEFAULT`), so drawing the translucent water
   first depth-rejected the bucket walls behind it and made the bucket see-through.
 
-## Version 5.1.2 (hand-hold rework)
+## Version 5.1.2
 
-- The `pack_test` `item_pose.lua` block-rotation block (`applyBlockRotation`: extra
-  `rotateY(25°)`/`scale(1.1)` on held regular blocks, which made them look diagonal and
-  clip) was removed, restoring the 1.21.6-style block hold. The change only affects
-  regular block items — the custom 3D item models (buckets, boats, ...) are not block
-  items and keep their poses. `releases/holdmyitems-5.1.1+26.2.jar` archives the
-  pre-rework build.
+Public release of the 26.2 port. The build is identical to the archived
+`releases/holdmyitems-5.1.1+26.2.jar` (26.2 migration plus the held-item fixes listed
+in the 26.1.2 → 26.2 port notes above); the version number was bumped to 5.1.2 for
+this release. Personal grip/offset tweaks are deliberately kept out of this branch.
 
 ## License
 
