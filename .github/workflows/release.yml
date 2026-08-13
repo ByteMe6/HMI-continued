@@ -1,14 +1,23 @@
 name: Release
 
 # Builds the mod with JDK 25 (required by Minecraft 26.2) on a GitHub-hosted
-# runner and publishes the remapped jar to a GitHub Release whenever a version
-# tag is pushed (e.g. v5.1.2+26.2).
+# runner and publishes the remapped jar to a GitHub Release. The runner's
+# GITHUB_TOKEN creates the tag and the release.
 #
-# Release notes: if docs/release-notes/<tag>.md exists it is used verbatim as
-# the release body; otherwise GitHub auto-generates notes from the commit range.
+# Triggers:
+#   * Pushing a v* tag (the normal path, e.g. from master) -> release that tag.
+#   * Pushing a claude/version-*-release-* branch -> release the version in
+#     mod/gradle.properties if it has not been released yet (idempotent). This
+#     lets a release be cut from a work branch when tags cannot be pushed
+#     directly.
+#
+# Release notes: docs/release-notes/<tag>.md is used verbatim as the body when
+# present; otherwise GitHub auto-generates notes.
 
 on:
   push:
+    branches:
+      - 'claude/version-*-release-*'
     tags:
       - 'v*'
 
@@ -16,25 +25,52 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Determine release tag
+        id: meta
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            ver=$(grep -E '^mod_version=' mod/gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+            tag="v${ver}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Release tag: $tag"
+
+      - name: Skip if release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.meta.outputs.tag }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Release ${{ steps.meta.outputs.tag }} already exists; nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up JDK 25
+        if: steps.exists.outputs.skip == 'false'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Build
+        if: steps.exists.outputs.skip == 'false'
         working-directory: mod
         run: |
           chmod +x ./gradlew
           ./gradlew build --no-daemon --stacktrace
 
       - name: Locate release jar
+        if: steps.exists.outputs.skip == 'false'
         id: jar
         run: |
           jar=$(ls mod/build/libs/holdmyitems-*.jar | grep -v -- '-sources.jar' | head -n1)
@@ -47,21 +83,23 @@ jobs:
           echo "Release jar: $jar"
 
       - name: Resolve release notes
+        if: steps.exists.outputs.skip == 'false'
         id: notes
         run: |
-          f="docs/release-notes/${GITHUB_REF_NAME}.md"
+          f="docs/release-notes/${{ steps.meta.outputs.tag }}.md"
           if [ -f "$f" ]; then
             echo "path=$f" >> "$GITHUB_OUTPUT"
-            echo "Using curated notes: $f"
           else
             echo "path=" >> "$GITHUB_OUTPUT"
-            echo "No curated notes for ${GITHUB_REF_NAME}; auto-generating."
           fi
 
       - name: Publish GitHub Release
+        if: steps.exists.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          name: HMI ${{ github.ref_name }}
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: HMI ${{ steps.meta.outputs.tag }}
           files: ${{ steps.jar.outputs.path }}
           body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: ${{ steps.notes.outputs.path == '' }}
