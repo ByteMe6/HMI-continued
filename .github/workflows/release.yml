@@ -1,0 +1,131 @@
+name: Release
+
+# Builds the mod with JDK 25 (required by Minecraft 26.2) on a GitHub-hosted
+# runner and publishes the remapped jar to a GitHub Release. The runner's
+# GITHUB_TOKEN creates the tag and the release.
+#
+# Triggers:
+#   * Pushing a v* tag (the normal path, e.g. from master) -> always release.
+#   * Pushing a claude/version-*-release-* branch -> release ONLY when the push
+#     changed mod_version or minecraft_version in mod/gradle.properties (i.e. a
+#     real version bump). Ordinary pushes that don't touch the version are
+#     ignored, so the release is never rebuilt/overwritten for nothing.
+#
+# Release name:  "[<minecraft_version>] HMI <tag>"  (e.g. "[26.2] HMI v5.1.2+26.2")
+# Release notes: docs/release-notes/<tag>.md verbatim when present, else auto-generated.
+
+on:
+  push:
+    branches:
+      - 'claude/version-*-release-*'
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version metadata
+        id: meta
+        run: |
+          mc=$(grep -E '^minecraft_version=' mod/gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          modv=$(grep -E '^mod_version=' mod/gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            tag="v${modv}"
+          fi
+          echo "tag=$tag"   >> "$GITHUB_OUTPUT"
+          echo "mc=$mc"     >> "$GITHUB_OUTPUT"
+          echo "modv=$modv" >> "$GITHUB_OUTPUT"
+          echo "Candidate release: [$mc] HMI $tag"
+
+      - name: Decide whether to release
+        id: gate
+        run: |
+          # A tag push is an explicit release request -> always go.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Tag push -> release."
+            exit 0
+          fi
+
+          before="${{ github.event.before }}"
+          zero="0000000000000000000000000000000000000000"
+          if [ -z "$before" ] || [ "$before" = "$zero" ] || ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "No usable base commit (new/force-pushed branch) -> release."
+            exit 0
+          fi
+
+          prev=$(git show "${before}:mod/gradle.properties" 2>/dev/null || true)
+          prev_mc=$(printf '%s\n'   "$prev" | grep -E '^minecraft_version=' | cut -d= -f2 | tr -d '[:space:]')
+          prev_modv=$(printf '%s\n' "$prev" | grep -E '^mod_version='       | cut -d= -f2 | tr -d '[:space:]')
+
+          if [ "$prev_mc" != "${{ steps.meta.outputs.mc }}" ] || [ "$prev_modv" != "${{ steps.meta.outputs.modv }}" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Version changed -> release."
+            echo "  mod_version:       '$prev_modv' -> '${{ steps.meta.outputs.modv }}'"
+            echo "  minecraft_version: '$prev_mc' -> '${{ steps.meta.outputs.mc }}'"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "No change to mod_version/minecraft_version -> skipping release."
+          fi
+
+      - name: Set up JDK 25
+        if: steps.gate.outputs.release == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Build
+        if: steps.gate.outputs.release == 'true'
+        working-directory: mod
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build --no-daemon --stacktrace
+
+      - name: Locate release jar
+        if: steps.gate.outputs.release == 'true'
+        id: jar
+        run: |
+          jar=$(ls mod/build/libs/holdmyitems-*.jar | grep -v -- '-sources.jar' | head -n1)
+          if [ -z "$jar" ]; then
+            echo "No release jar found in mod/build/libs/" >&2
+            ls -la mod/build/libs/ || true
+            exit 1
+          fi
+          echo "path=$jar" >> "$GITHUB_OUTPUT"
+          echo "Release jar: $jar"
+
+      - name: Resolve release notes
+        if: steps.gate.outputs.release == 'true'
+        id: notes
+        run: |
+          f="docs/release-notes/${{ steps.meta.outputs.tag }}.md"
+          if [ -f "$f" ]; then
+            echo "path=$f" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish GitHub Release
+        if: steps.gate.outputs.release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: '[${{ steps.meta.outputs.mc }}] HMI ${{ steps.meta.outputs.tag }}'
+          files: ${{ steps.jar.outputs.path }}
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: ${{ steps.notes.outputs.path == '' }}
+          fail_on_unmatched_files: true
