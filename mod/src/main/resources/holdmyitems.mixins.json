@@ -15,8 +15,8 @@
       "safety.JavaMethodMixin",
       "property.UseDurationMixin",
       "property.UsingItemMixin",
-      "render.HangingSignMixin",
       "render.ItemRenderStateMixin",
+      "render.RenderTypeFeatureRendererAccessor",
       "render.RenderTypeInvoker"
 	],
 	"injectors": {

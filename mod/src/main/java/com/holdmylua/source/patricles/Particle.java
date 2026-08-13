@@ -352,7 +352,7 @@ public class Particle {
          translation = matrix.getTranslation(translation);
          rotation = matrix.getUnnormalizedRotation(rotation);
          scale = matrix.getScale(scale);
-         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+         Camera camera = Minecraft.getInstance().gameRenderer.mainCamera();
          matrix = matrix.identity().translate(translation).scale(scale).rotate(camera.rotation());
          matrix.rotate(new Quaternionf().rotateX((float)(this.rx * (float) (Math.PI / 180.0))));
          matrix.rotate(new Quaternionf().rotateY((float)(this.ry * (float) (Math.PI / 180.0))));

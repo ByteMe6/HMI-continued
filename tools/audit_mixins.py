@@ -59,11 +59,23 @@ for m in names:
             else:
                 print("  MISS @At " + tcls + "." + tmember)
                 fail += 1
-        # @Invoker/@Accessor named members
+        # @Invoker/@Accessor named members (walk the superclass chain too, since
+        # invokers may target inherited methods such as RenderTypeFeatureRenderer
+        # .getVertexBuilder)
         for inv_name in re.findall(r'@(?:Invoker|Accessor)\("([A-Za-z0-9_$]+)"\)', src):
             if classes:
-                tsigs = javap(inv.get(classes[0], classes[0]) if "." not in classes[0] else classes[0])
-                if re.search(r'\b' + re.escape(inv_name) + r'\b', tsigs):
+                cls = inv.get(classes[0], classes[0]) if "." not in classes[0] else classes[0]
+                found = False
+                for _ in range(8):
+                    tsigs = javap(cls)
+                    if re.search(r'\b' + re.escape(inv_name) + r'\b', tsigs):
+                        found = True
+                        break
+                    m = re.search(r'extends\s+([A-Za-z0-9_$.]+)', tsigs)
+                    if not m:
+                        break
+                    cls = m.group(1)
+                if found:
                     print("  OK   invoker/accessor " + inv_name)
                 else:
                     print("  MISS invoker/accessor " + inv_name)
