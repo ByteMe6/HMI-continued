@@ -21,7 +21,7 @@ Not affiliated with sapling or Mojang. All credit for the mod itself goes to sap
 - Minecraft **26.2**
 - Fabric Loader **0.19.3+**
 - Fabric API
-- Java **25+** (required by Minecraft 26.1)
+- Java **25+** (required by Minecraft 26.2)
 
 Drop the jar from [Releases](../../releases) (or your own build) into `mods/`.
 
@@ -93,7 +93,8 @@ Minecraft 26.2 reworked the feature-render pipeline again. Key migrations:
   render through the item pipeline, the overlay is dropped for them).
 - Resource pack metadata: 26.2 requires `min_format`/`max_format` for ranges above 64 and
   `supported_formats` for ranges spanning 17–64; the bundled pack declares both plus
-  `pack_format: 88`.
+  `pack_format: 46` (a legacy-range value, read only by pre-26.2 clients — modern clients
+  use `min_format`/`max_format`).
 - The bundled `pack_test`'s 3D item set (buckets, boats, rafts, ...) was incomplete in the
   26.1.2 port — the original pack's `models/item/*_3d.json` element models and textures
   were dropped, so the item-definition overrides resolved to missing models and 26.2's new

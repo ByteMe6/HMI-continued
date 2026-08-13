@@ -533,7 +533,8 @@ public abstract class HeldItemRendererMixin {
             // chain bar) via the removed special renderer; the block pipeline would render
             // the plain ceiling state, leaving the chains looking detached. The "attached"
             // variant keeps the vertical chain bar, so render that instead.
-            if (blockState.hasProperty(BlockStateProperties.ATTACHED)) {
+            if (blockState.is(BlockTags.ALL_HANGING_SIGNS)
+                  && blockState.hasProperty(BlockStateProperties.ATTACHED)) {
                blockState = (BlockState)blockState.setValue(BlockStateProperties.ATTACHED, true);
             }
 
